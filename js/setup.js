@@ -86,11 +86,23 @@ var onPopupEscPress = function (evt) {
 var openPopup = function () {
    setupPopup.classList.remove('hidden');
    document.addEventListener('keydown', onPopupEscPress);
+
+   window.popupDefaultCoords = {
+      x: setupPopup.offsetLeft,
+      y: setupPopup.offsetTop,
+   };
 };
 
 var closePopup = function () {
    setupPopup.classList.add('hidden');
    document.removeEventListener('keydown', onPopupEscPress);
+
+   setDefaultPopupCoords();
+};
+
+var setDefaultPopupCoords = function () {
+   setupPopup.style.left = popupDefaultCoords.x + 'px';
+   setupPopup.style.top = popupDefaultCoords.y + 'px';
 };
 
 openSetup.addEventListener('click', function () {
@@ -151,4 +163,55 @@ wizardFireball.addEventListener('click', function () {
 
    wizardFireball.style = 'background-color:' + currentColor;
    document.querySelector('input[name="fireball-color"]').value = currentColor;
+});
+
+var dialogHandle = setupPopup.querySelector('.upload');
+var dialogUploadAvatar = setupPopup.querySelector('input[name="avatar"]');
+
+dialogHandle.addEventListener('mousedown', function (evt) {
+   evt.preventDefault();
+
+   var startCoords = {
+      x: evt.clientX,
+      y: evt.clientY,
+   };
+
+   var dragged = false;
+
+   var onMouseMove = function (moveEvt) {
+      moveEvt.preventDefault();
+      dragged = true;
+
+      var shift = {
+         x: startCoords.x - moveEvt.clientX,
+         y: startCoords.y - moveEvt.clientY,
+      };
+
+      startCoords = {
+         x: moveEvt.clientX,
+         y: moveEvt.clientY,
+      };
+
+      setupPopup.style.left = (setupPopup.offsetLeft - shift.x) + 'px';
+      setupPopup.style.top = (setupPopup.offsetTop - shift.y) + 'px';
+   };
+
+   var onMouseUp = function (upEvt) {
+      upEvt.preventDefault();
+
+      document.removeEventListener('mousemove', onMouseMove);
+      document.removeEventListener('mouseup', onMouseUp);
+
+      if (dragged) {
+         var onClickPreventDefault = function (evt) {
+            evt.preventDefault();
+            dialogUploadAvatar.removeEventListener('click', onClickPreventDefault);
+         };
+
+         dialogUploadAvatar.addEventListener('click', onClickPreventDefault);
+      };
+   };
+
+   document.addEventListener('mousemove', onMouseMove);
+   document.addEventListener('mouseup', onMouseUp);
 });
